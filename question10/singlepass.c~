@@ -1,70 +1,260 @@
-#include <stdio.h>
+#include<stdio.h>
 #include<stdlib.h>
-#include<string.h>
+#include <string.h>
+
+struct sym
+{
+	char symbolname[20];
+	int value;
+	struct sym *next;
+} *symtab[30];
+
+int symtabsearch(char label[],int limit){
+	int i ;
+	for(i=0;i<=limit;++i)
+	{
+		if(strcmp(symtab[i]->symbolname,label)==0)
+		{
+
+			return i;
+		}
+		//printf("%s",symtab[i]->symbolname);
+	}
+	return -1;
+}
+void init()
+{
+	int i;
+	for(i=0;i<30;++i)
+	{
+		symtab[i]=NULL;
+	}
+}
 
 void main()
 {
-	char label[20],opcode[20],operand[20];
-	int curr_pos;
-	char scanlabe[20];
-	int value;
+	init();
+	int startaddr;
+	char opcode[20],label[20],operand[20];
+	char scancode[20],scanvalue[20];
+	struct sym *ptr=NULL,*newptr=NULL,*trav=NULL;
+	int limit=-1,wordlen;
+	int found=0;
+	int i;
 
-	int locctr,start,length;	
-	FILE *proptr,*obptr ,*inter,*symptr;
-	
+	int locctr=0;
+
+
+
+	FILE *proptr, *objptr,*opptr;
+
 	proptr=fopen("program.txt","r");
+
 	fscanf(proptr,"%s%s%s",label,opcode,operand);
-	
-	obptr=fopen("obcode.txt","a+");
-	
 
 	if(strcmp(opcode,"START")==0)
-	{
+	{	locctr=atoi(operand);
+		objptr=fopen("sobcode.txt","a+");
+		fprintf(objptr,"H_%s_%s\n",label,operand);
+		fprintf(objptr,"T");
+		startaddr=atoi(operand);
 
-		locctr=atoi(operand);
-		start=locctr;	
-		
-		inter=fopen("length.txt","r");
-		fscanf(inter,"%d",&length);
-		fclose(inter);			
-		
-		fprintf(obptr,"H_%s_%s_%X",label,operand,length);
-		
-		fprintf(obptr,"\nT");
-			
+
 	}
 	else
 	{
-		printf("PROGRAM ERROR");
+
+		fclose(proptr);
+		printf("PROGRAM ERROR\n");
 		exit(1);
 	}
+
 	fscanf(proptr,"%s%s%s",label,opcode,operand);
-	cur_pos=ftell(proptr);
-	
 	while(strcmp(opcode,"END")!=0)
 	{
-		if(feof(proptr))
-		{ break;
-		}
 
-		cur_pos=ftell(proptr);
-		if(strcmp(label,"_")!=0)
+		if(feof(proptr))
 		{
-			symptr=fopen("symtab.txt","a+");
-			while(!feof(symptr))
+			break;
+		}
+		if (strcmp(label,"_")!=0)
+		{
+			/*found=-1;
+			for(i=0;i<=limit;++i)
+			{
+
+				if(strcmp(symtab[i]->symbolname,label)==0)
 				{
-					fscanf(symptr,"%s%d",scanlabel,&value);
-					if(strcmp(scanlabel,label)==0)
-					{
-						if(value==134513947) // # = 134513947
-						{
-							fseek(symptr,cur_pos,SEEK_SET);
-							fprintf(symptr,"%s%d",scanlabel,locctr);
-							
-						}
-					}
+
+					found=i;
+					break;
 				}
 
+			}*/
+			found=symtabsearch(label,limit);
+			if(found==-1)
+			{
+				++limit;
+				struct sym *newnode=(struct sym*)malloc(sizeof(struct sym));
+				strcpy(newnode->symbolname,label);
+
+				newnode->value=locctr;
+				newnode->next=NULL;
+				symtab[limit]=newnode;
+
+			}
+			else
+			{
+				struct sym *newnode=NULL;
+				if(symtab[found]->value==-1)
+				{
+				symtab[found]->value=locctr;
+				ptr=symtab[found];
+
+
+				while(ptr->next!=NULL)
+				{
+					ptr=ptr->next;
+											fprintf(objptr,"\nT_%d_05_%d",ptr->value,locctr);
+
+				}
+				}
+				else
+				{
+					printf("DUPLICATE LITERAL ERROR");
+					fclose(objptr);
+					fclose(proptr);
+					exit(1);
+				}
+
+			}
+
+
+
 		}
+		if((strcmp(opcode,"BYTE")==0 )|| (strcmp(opcode,"WORD")==0))
+		{
+			if(strcmp(opcode,"BYTE")==0)
+			{
+				wordlen=strlen(operand);
+				locctr+=wordlen;
+					fprintf(objptr,"_0000%s_",operand)	;
+			}
+			else
+			{
+				locctr+=3;
+				fprintf(objptr,"_00000%s_",operand)	;
+			}
+
+		}
+		else if((strcmp(opcode,"RESW")==0 )|| (strcmp(opcode,"RESB")==0))
+		{
+			if(strcmp(opcode,"RESW")==0)
+			{
+				locctr+=3*atoi(operand);
+			}
+			else
+			{
+				locctr+=atoi(operand);
+			}
+		}
+		else
+		{
+			opptr=fopen("optab.txt","r");
+			fscanf(opptr,"%s%s",scancode,scanvalue);
+			while(!feof(opptr))
+			{
+			if(strcmp(scancode,opcode)==0)
+				{
+					fclose(opptr);
+					//printf("%s",scanvalue);
+					break;
+				}
+			else
+			{
+				fscanf(opptr,"%s%s",scancode,scanvalue);
+			}
+			}
+			if(feof(opptr))
+			{
+				printf("OPTAB ERROR");
+				fclose(opptr);
+				fclose(objptr);
+				fclose(proptr);
+				exit(1);
+			}
+			found=symtabsearch(operand,limit);
+			if(found==-1)
+			{
+				++limit;
+				symtab[limit]=(struct sym*)malloc(sizeof(struct sym));
+				strcpy(symtab[limit]->symbolname,operand);
+				symtab[limit]->value=-1;
+				symtab[limit]->next=NULL;
+			}
+			else
+			{
+				if(symtab[found]->value==-1)
+				{
+					struct sym *newptr=NULL;
+					trav=symtab[found];
+					while(trav->next!=NULL)
+					{
+						trav=trav->next;
+					}
+					newptr=(struct sym*)malloc(sizeof(struct sym));
+					strcpy(newptr->symbolname,"");
+					newptr->value=locctr;
+					newptr->next=NULL;
+					trav->next=newptr;
+				}
+				else
+				{
+					fprintf(objptr, "_%s000%d", scanvalue,symtab[found]->value);
+				}
+			}
+			locctr+=3;
+		}
+
+
+
+		fscanf(proptr,"%s%s%s",label,opcode,operand);
 	}
+	fprintf(objptr,"\nE_%d",startaddr);
+
+	fclose(proptr);
+	fclose(objptr);
 }
+
+
+/*
+OPTAB.txt
+_____________
+LDA 00
+ADD 18
+JEQ 30
+STA 0C
+TIX 2C
+
+program.txt
+______________
+SUM START 0
+ZERO WORD 0
+THREE WORD 3
+SUM RESW 1
+_ LDA ZERO
+_ ADD THREE
+_ STA SUM
+SAMPLE LDA ZERO
+_ END 1000
+
+object program 
+____________________
+H_SUM_0
+T_000000__000003__000000_180003_0C0006_000000
+E_0
+
+
+
+
+*/
