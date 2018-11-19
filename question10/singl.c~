@@ -1,0 +1,203 @@
+#include <stdio.h>
+#include<stdlib.h>
+#include<string.h>
+	struct sym{
+		char symbolname[20];
+		int value;
+		struct sym *next;
+		  }*symtab[20];
+
+	
+
+		void init(){
+			int i;
+			for(i=0;i<20;++i)
+				{
+				symtab[i]=NULL;
+				}
+			}
+int symtabsearch(char label[],int limit){
+	int i ;
+	for(i=0;i<=limit;++i)
+	{
+		if(strcmp(symtab[i]->symbolname,label)==0)
+		{
+			
+			return i;
+		}
+		printf("%s",symtab[i]->symbolname);
+	}
+	return -1;
+}
+
+void main() {
+
+	init();
+	int limit=-1;
+
+	int wordlen;
+	int searchreturn ;
+	struct sym *trav=NULL;
+	struct sym *ptr=NULL;
+	int locctr,start;
+	char label[20],opcode[20],operand[20];
+	int scanaddress;
+	char scancode[20],scanvalue[20];
+	char scanlabel[20];
+
+	FILE *proptr,*opptr,*objptr;
+	proptr=fopen("program.txt","r");
+
+	fscanf(proptr ,"%s%s%s",label,opcode,operand);
+	if(strcmp(opcode,"START")==0)
+	{
+		locctr=atoi(operand);
+		printf("%d",locctr);
+		start=locctr;
+		objptr=fopen("sobcode.txt","a+");
+		fprintf(objptr,"H_%s_%s\n",opcode,operand);
+		fprintf(objptr,"T");
+		//fclose(objptr); //CHANGE THIS CODE LATER
+	}
+	else
+	{
+		printf("ERROR");
+		fclose(proptr);
+		exit(1);
+	}
+	fscanf(proptr,"%s%s%s",label,opcode,operand);
+	while(strcmp(opcode,"END")!=0)
+	{
+		if(feof(proptr))
+		{ break;
+		}
+		if(strcmp(label,"_")!=0)
+		{
+			searchreturn=symtabsearch(label,limit);
+			if(searchreturn==-1)
+			{
+				++limit;
+				struct sym *newnode = (struct sym*)malloc(sizeof(struct sym));
+				strcpy(newnode->symbolname,label);
+				newnode->value=locctr;
+				newnode->next=NULL;
+				symtab[limit]=newnode;
+			}
+		
+			else 
+			{
+				ptr=symtab[searchreturn];
+				struct sym *newnode=NULL;
+				if(ptr->value==-1)
+				{
+					ptr->value=locctr;
+					ptr=ptr->next;
+					while(ptr!=NULL)
+					{
+						fprintf(objptr, "\nT_0000%d_05_00000%d",ptr->value,locctr );
+						ptr=ptr->next;
+					}
+					fprintf(objptr,"\nT_" );
+				}
+				else
+				{
+					printf("DUPLICATE LITERAL ERROR");
+					fclose(objptr);
+					fclose(proptr);
+					exit(1);
+				}
+			}
+		}
+		if((strcmp(opcode,"BYTE")==0 )|| (strcmp(opcode,"WORD")==0))
+		{
+			if(strcmp(opcode,"WORD")==0)
+			{
+				int i;
+				wordlen=strlen(operand); //changed to opcode to operand
+				locctr+=wordlen;
+				fprintf(objptr,"_");
+				for(i=1;i<=(6-wordlen+3);++i)
+				{
+				fprintf(objptr,"0");
+				}
+				fprintf(objptr,"%s",operand);
+			}
+			else
+			{
+				fprintf(objptr,"%s",operand);
+				locctr+=3;
+			}
+		}
+		else if((strcmp(opcode,"RESW")==0 )|| (strcmp(opcode,"RESB")==0))
+		{
+			if(strcmp(opcode,"RESW")==0)
+			{
+				locctr+=3*atoi(operand);
+			}
+			else
+			{
+				locctr+=atoi(operand);
+			}
+		}
+		else
+		{
+			opptr=fopen("optab.txt","r");
+			fscanf(opptr,"%s%s",scancode,scanvalue);
+			while(!feof(opptr))
+			{
+			if(strcmp(scancode,opcode)==0)
+				{
+					fclose(opptr);
+					//printf("%s",scanvalue);
+					break;
+				}
+			else
+			{
+				fscanf(opptr,"%s%s",scancode,scanvalue);
+			}
+			}
+			if(feof(opptr))
+			{
+				printf("OPTAB ERROR");
+				fclose(opptr);
+				fclose(objptr);
+				fclose(proptr);
+				exit(1);
+			}
+			searchreturn=symtabsearch(operand,limit);
+			if(searchreturn==-1)
+			{
+				++limit;
+				symtab[limit]=(struct sym*)malloc(sizeof(struct sym));
+				strcpy(symtab[limit]->symbolname,operand);
+				symtab[limit]->value=-1;
+				symtab[limit]->next=NULL;
+			}
+			else
+			{
+				if(symtab[searchreturn]->value==-1)
+				{
+					struct sym *newptr=NULL;
+					trav=symtab[searchreturn];
+					while(trav->next!=NULL)
+					{
+						trav=trav->next;
+					}
+					newptr=(struct sym*)malloc(sizeof(struct sym));
+					strcpy(newptr->symbolname,"");
+					newptr->value=locctr;
+					newptr->next=NULL;
+					trav->next=newptr;
+				}
+				else
+				{
+					fprintf(objptr, "_%s0%d", scanvalue,symtab[searchreturn]->value);
+				}
+			}
+			locctr+=3;
+		}
+		fscanf(proptr,"%s%s%s",label,opcode,operand);
+	}
+fclose(proptr);
+fclose(objptr);
+}

@@ -1,0 +1,143 @@
+#include<stdio.h>
+#include <string.h>
+
+struct dnode
+{
+   char dname[15];
+   int fcount;
+   char files[15][30]
+} dir[15] ;
+
+
+
+
+
+void main()
+{
+
+     char fname[30],rough[30];
+
+     int i,n,ch,j ;
+     int tmp;
+
+     printf("INITIAL CREATION\n");
+     printf("\n**************************\n");
+     printf("ENTER THE NUMBER OF DIRECTORIES");
+     scanf("%d",&n);
+     
+
+     
+
+
+     for(i=0;i<n;++i)
+     {   
+
+       printf("\nENTER THE NAME OF THE DIRECTORY  %d" ,i);
+       scanf("%s",&(dir[i].dname));
+       dir[i].fcount=0;
+       
+       printf("Enter number of  files  under directory %s",dir[i].dname);
+       
+       scanf("%d",&tmp);
+       for(j=0;j<tmp;++j)
+        {
+         
+            scanf("%s",*(dir[i].files +j));
+
+         }
+       
+       
+        
+        //canf("%s",*(str+i));
+     }
+
+for(i=0;i<n;++i)
+     {   
+
+       
+       printf("%s", dir[i].dname);
+   
+       
+    
+       for(j=0;j<dir[i].fcount;++j)
+        {
+         
+            printf("%s",dir[i].files[j]);
+
+         }
+        printf("\n");
+
+       
+       
+        
+        
+     }
+
+
+   
+/*
+     while(1)
+    {
+     printf("ENTER YOUR CHOICE\n");
+     printf("1. ADD FILE \n");
+     printf("2.DELETE FILE \n");
+     printf("3.SHOW DIRECTORY STRUCTURE\n");
+
+     scanf("%d",&ch);
+     
+     switch(ch)
+     {
+
+          case 1 :  printf("ENTER THE NAME OF THE FILE \n");
+  	            n=n+1;
+                    scanf("%s",*(str+n-1));
+                    break;
+
+         case 2 :   printf("ENTER THE FILE TO BE DELETED\n");
+                    scanf("%s" ,&fname);
+                    
+                    for(j=0;j<n;++j) 
+                    {  
+                           if(strcmp(fname,str[j])==0)
+                           {             
+                              strcpy(str[j],rough);
+                              strcpy(str[n-1],str[j]);                  
+                              strcpy(rough,str[n-1]);
+                              n=n-1;
+                              break;
+                           }
+                    } 
+                    if(j==n)
+                    {
+                       printf("FILE NOT FOUND\n");
+                      }
+                    else
+                    {
+                                             printf("FILE DELETED\n");
+                     }
+                    break; 
+         case 3 :
+                        for(i=0;i<n;++i)
+                       {
+                             printf("%s",str[i]);
+                       }
+                     break;
+         default :break;
+   
+  
+
+
+      }
+     printf("\nDO YOU WANT TO ENTER MORE (0/1) \n");
+     scanf("%d",&ch);
+     if(ch!=1)
+         {break;}
+  
+    }*/
+    
+    
+   }
+
+   
+   
+

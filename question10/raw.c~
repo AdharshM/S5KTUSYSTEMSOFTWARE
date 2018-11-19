@@ -1,0 +1,13 @@
+#include<stdio.h>
+
+
+void main()
+{
+	int a;
+	FILE *f;
+	f=fopen("raw.txt","r");
+	fscanf(f,"%d",&a);
+	
+	printf("%d",a);
+}
+

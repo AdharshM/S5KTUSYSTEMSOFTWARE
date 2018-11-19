@@ -1,0 +1,6 @@
+LDA 00
+ADD 18
+JEQ 30
+STA 0C
+TIX 2C
+

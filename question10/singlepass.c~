@@ -1,0 +1,70 @@
+#include <stdio.h>
+#include<stdlib.h>
+#include<string.h>
+
+void main()
+{
+	char label[20],opcode[20],operand[20];
+	int curr_pos;
+	char scanlabe[20];
+	int value;
+
+	int locctr,start,length;	
+	FILE *proptr,*obptr ,*inter,*symptr;
+	
+	proptr=fopen("program.txt","r");
+	fscanf(proptr,"%s%s%s",label,opcode,operand);
+	
+	obptr=fopen("obcode.txt","a+");
+	
+
+	if(strcmp(opcode,"START")==0)
+	{
+
+		locctr=atoi(operand);
+		start=locctr;	
+		
+		inter=fopen("length.txt","r");
+		fscanf(inter,"%d",&length);
+		fclose(inter);			
+		
+		fprintf(obptr,"H_%s_%s_%X",label,operand,length);
+		
+		fprintf(obptr,"\nT");
+			
+	}
+	else
+	{
+		printf("PROGRAM ERROR");
+		exit(1);
+	}
+	fscanf(proptr,"%s%s%s",label,opcode,operand);
+	cur_pos=ftell(proptr);
+	
+	while(strcmp(opcode,"END")!=0)
+	{
+		if(feof(proptr))
+		{ break;
+		}
+
+		cur_pos=ftell(proptr);
+		if(strcmp(label,"_")!=0)
+		{
+			symptr=fopen("symtab.txt","a+");
+			while(!feof(symptr))
+				{
+					fscanf(symptr,"%s%d",scanlabel,&value);
+					if(strcmp(scanlabel,label)==0)
+					{
+						if(value==134513947) // # = 134513947
+						{
+							fseek(symptr,cur_pos,SEEK_SET);
+							fprintf(symptr,"%s%d",scanlabel,locctr);
+							
+						}
+					}
+				}
+
+		}
+	}
+}
